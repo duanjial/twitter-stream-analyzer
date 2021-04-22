@@ -3,6 +3,7 @@ import tweepy
 import json
 import base64
 from google.cloud import pubsub_v1
+import configparser
 
 
 def publish(client, data_lines):
@@ -64,9 +65,11 @@ if __name__ == "__main__":
     BATCH_SIZE = 2
     PROJECT_ID = "tweeter-stream-analyzer"
     TOPIC_PATH = f"projects/{PROJECT_ID}/topics/twitter-realtime-stream"
-    consumer_key = os.getenv("API_KEY")
-    consumer_secret = os.getenv("API_SECRECT")
-    access_token = os.getenv("ACCESS_TOKEN")
-    access_token_secret = os.getenv("ACCESS_TOKEN_SECRECT")
+    config = configparser.ConfigParser()
+    config.read("config.ini")
+    consumer_key = config["TWITTER"]["API_KEY"]
+    consumer_secret = config["TWITTER"]["API_SECRECT"]
+    access_token = config["TWITTER"]["ACCESS_TOKEN"]
+    access_token_secret = config["TWITTER"]["ACCESS_TOKEN_SECRECT"]
     publisher = pubsub_v1.PublisherClient()
     run()
