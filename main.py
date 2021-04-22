@@ -4,16 +4,6 @@ import json
 import base64
 from google.cloud import pubsub_v1
 
-BATCH_SIZE = 2
-PROJECT_ID = "tweeter-stream-analyzer"
-TOPIC_PATH = f"projects/{PROJECT_ID}/topics/twitter-realtime-stream"
-consumer_key = os.getenv("API_KEY")
-consumer_secret = os.getenv("API_SECRECT")
-access_token = os.getenv("ACCESS_TOKEN")
-access_token_secret = os.getenv("ACCESS_TOKEN_SECRECT")
-
-publisher = pubsub_v1.PublisherClient()
-
 
 def publish(client, data_lines):
     messages = []
@@ -48,22 +38,35 @@ class TwitterStreamListener(tweepy.StreamListener):
             # tweet = dict(screen_name=status.user.screen_name,
             #              created_at=status.created_at, msg=msg)
             self.tweets.append(msg)
-            if self.num_tweets == BATCH_SIZE:
-                # pubsub to publish
-                publish(publisher, self.tweets)
-                return False
+            # if self.num_tweets == BATCH_SIZE:
+            #     # pubsub to publish
+            #     publish(publisher, self.tweets)
+            #     return False
 
     def on_error(self, status_code):
         if status_code == 420:
             return False
 
 
-auth = tweepy.OAuthHandler(consumer_key, consumer_secret)
-auth.set_access_token(access_token, access_token_secret)
-api = tweepy.API(auth)
+def run():
+    auth = tweepy.OAuthHandler(consumer_key, consumer_secret)
+    auth.set_access_token(access_token, access_token_secret)
+    api = tweepy.API(auth)
 
-myTwitterStreamListener = TwitterStreamListener()
-stream = tweepy.Stream(
-    auth=api.auth, listener=myTwitterStreamListener, tweet_mode='extended')
+    myTwitterStreamListener = TwitterStreamListener()
+    stream = tweepy.Stream(
+        auth=api.auth, listener=myTwitterStreamListener, tweet_mode='extended')
 
-stream.filter(track=["manutd", "ole", "manchester united"], is_async=True)
+    stream.filter(track=["manutd", "ole", "manchester united"], is_async=True)
+
+
+if __name__ == "__main__":
+    BATCH_SIZE = 2
+    PROJECT_ID = "tweeter-stream-analyzer"
+    TOPIC_PATH = f"projects/{PROJECT_ID}/topics/twitter-realtime-stream"
+    consumer_key = os.getenv("API_KEY")
+    consumer_secret = os.getenv("API_SECRECT")
+    access_token = os.getenv("ACCESS_TOKEN")
+    access_token_secret = os.getenv("ACCESS_TOKEN_SECRECT")
+    publisher = pubsub_v1.PublisherClient()
+    run()
